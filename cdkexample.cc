@@ -91,13 +91,26 @@ int main()
 
   //Build a properly formated versionNumber string and add it to the matrix
   char* versionNumber = new char[41];
-  sprintf(versionNumber, "Version: %d", header->versionNumber);
+  sprintf(versionNumber, "Version: %u", header->versionNumber);
   setCDKMatrixCell(myMatrix,1,2,versionNumber); 
 
   //Build a properly formatted NumRecords string and add it to the matrix
   char* numRecords = new char[76];
-  sprintf(numRecords,"NumRecords: %u", header->numRecords);
+  sprintf(numRecords,"NumRecords: %lu", header->numRecords);
   setCDKMatrixCell(myMatrix,1,3,numRecords);
+
+  //Loop through the records reading data
+  BinaryFileRecord* record = new BinaryFileRecord();
+  for (unsigned int i=0;i<header->numRecords && i<4;i++)
+  {
+    input.read((char*)record, sizeof(BinaryFileRecord));
+    char* strlen = new char[16];
+    sprintf(strlen, "strlen: %u", record->strLength);
+    setCDKMatrixCell(myMatrix,i+2,1,strlen);
+
+    setCDKMatrixCell(myMatrix,i+2,2,record->stringBuffer);
+    
+  }
 
   /* Display the Matrix */
   drawCDKMatrix(myMatrix, true);
