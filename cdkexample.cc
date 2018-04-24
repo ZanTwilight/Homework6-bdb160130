@@ -1,22 +1,34 @@
-/*
- * Usage of CDK Matrix
- *
- * File:   example1.cc
- * Author: Stephen Perkins
- * Email:  stephen.perkins@utdallas.edu
- */
+// Brian Bell
+// bdb160130@utdallas.edu
+// CS 3377.002
 
 #include <iostream>
+#include <fstream>
+#include <cstdint>
 #include "cdk.h"
 
-
-#define MATRIX_WIDTH 4
-#define MATRIX_HEIGHT 3
-#define BOX_WIDTH 15
+#define MATRIX_WIDTH 3
+#define MATRIX_HEIGHT 5
+#define BOX_WIDTH 20
 #define MATRIX_NAME_STRING "Test Matrix"
 
 using namespace std;
 
+
+class BinaryFileHeader
+{
+public:
+  uint32_t magicNumber;
+  uint32_t versionNumber;
+  uint64_t numRecords;
+};
+
+class BinaryFileRecord
+{
+public:
+  uint8_t strLength;
+  char stringBuffer[25];
+};
 
 int main()
 {
@@ -62,19 +74,39 @@ int main()
       _exit(1);
     }
 
+  // Create ifstream
+  ifstream input("cs3377.bin", ios::in | ios::binary);
+  if (!input.is_open()) {
+    return 1;
+  }
+  
+  //Read a BinaryFileHeader from the binary file
+  BinaryFileHeader* header = new BinaryFileHeader();
+  input.read((char*)header,sizeof(BinaryFileHeader));
+
+  //Build a properly formatted magicNumber string and add it to the matrix
+  char* magicNumber = new char[41];
+  sprintf(magicNumber,"Magic: 0x%X",header->magicNumber);
+  setCDKMatrixCell(myMatrix, 1, 1, magicNumber);
+
+  //Build a properly formated versionNumber string and add it to the matrix
+  char* versionNumber = new char[41];
+  sprintf(versionNumber, "Version: %d", header->versionNumber);
+  setCDKMatrixCell(myMatrix,1,2,versionNumber); 
+
+  //Build a properly formatted NumRecords string and add it to the matrix
+  char* numRecords = new char[76];
+  sprintf(numRecords,"NumRecords: %u", header->numRecords);
+  setCDKMatrixCell(myMatrix,1,3,numRecords);
+
   /* Display the Matrix */
   drawCDKMatrix(myMatrix, true);
-
-  /*
-   * Dipslay a message
-   */
-  setCDKMatrixCell(myMatrix, 2, 2, "Test Message");
-  drawCDKMatrix(myMatrix, true);    /* required  */
 
   /* So we can see results, pause until a key is pressed. */
   unsigned char x;
   cin >> x;
 
   // Cleanup screen
+  input.close();
   endCDK();
-}
+};
